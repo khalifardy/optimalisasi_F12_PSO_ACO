@@ -6,28 +6,11 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
 import matplotlib.animation as animation
 from matplotlib.animation import FuncAnimation
-import random
-sns.set()
+import bisect
 
-def u(xi, a, k, m):
-    if xi > a:
-        return k * ((xi - a) ** m)
-    elif xi < -a:
-        return k * ((-xi - a) ** m)
-    return 0
-
-def f12_function(x:np.array):
-    n = len(x)
-    y = x+1  # Transform x by adding 1 to each component
-    term1 = 10 * np.sin(np.pi * y[0])
-    term2 = sum((y[:-1] - 1) ** 2 * (1 + 10 * (np.sin(np.pi * y[1:])** 2) ))
-    term3 = (y[-1] - 1) ** 2
-    sum_u = sum(u(xi, 10, 100, 4) for xi in x)
-
-    
-    return np.pi / n * (term1 + term2 + term3) + sum_u
-
-
+def function_f9(x:np.array):
+    hasil = sum(x**2 - 10 * np.cos(2*np.pi*x) + 10)
+    return hasil
 
 class PSO:
     def __init__(self,objective_function, n_particles, n_dimensions, w, c1, c2, n_iterations,upper_bound,lower_bound):
@@ -72,16 +55,16 @@ class PSO:
         return self.gbest
 
 
-x = np.linspace(-10, 7, 100)
-y = np.linspace(-10, 7, 100)
+x = np.linspace(-3, 6, 100)
+y = np.linspace(-3, 6, 100)
 X, Y = np.meshgrid(x, y)
-Z = np.array([f12_function(np.array([xi, yi])) for xi, yi in zip(X.ravel(), Y.ravel())]).reshape(X.shape)
+Z = np.array([function_f9(np.array([xi, yi])) for xi, yi in zip(X.ravel(), Y.ravel())]).reshape(X.shape)
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 surf = ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='none', alpha=0.8)
-pso3 = PSO(f12_function,50,2,0.4,0.2,0.6,20,7,-10)
-points = ax.scatter(pso3.particles[:, 0], pso3.particles[:, 1], [f12_function(p) for p in pso3.particles], color='r')
+pso3 = PSO(function_f9,40,2,0.3,0.7,0.2,80,6,-3)
+points = ax.scatter(pso3.particles[:, 0], pso3.particles[:, 1], [function_f9(p) for p in pso3.particles], color='r')
 pso3.fit()
 list_poin = pso3.history_particel
 
@@ -89,7 +72,7 @@ list_poin = pso3.history_particel
 def update(frame):
     titik_poin = list_poin[frame]
     print(titik_poin)
-    points._offsets3d = (titik_poin[:, 0], titik_poin[:, 1], [f12_function(p) for p in titik_poin])
+    points._offsets3d = (titik_poin[:, 0], titik_poin[:, 1], [function_f9(p) for p in titik_poin])
     return points,
 
 ani = FuncAnimation(fig, update, frames=np.arange(len(list_poin)), interval=50,repeat=False)
