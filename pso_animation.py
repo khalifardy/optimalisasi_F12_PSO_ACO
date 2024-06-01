@@ -28,9 +28,29 @@ def f12_function(x:np.array):
     return np.pi / n * (term1 + term2 + term3) + sum_u
 
 
+# PSO
+# Write your code here
 
 class PSO:
-    def __init__(self,objective_function, n_particles, n_dimensions, w, c1, c2, n_iterations,upper_bound,lower_bound):
+    def __init__(self, objective_function, n_particles, n_dimensions, w, c1, c2, n_iterations, upper_bound, lower_bound, seed=None):
+        """
+        Inisialisasi objek PSO.
+
+        Parameters:
+        - objective_function (function): Fungsi tujuan yang akan dioptimalkan.
+        - n_particles (int): Jumlah partikel dalam populasi.
+        - n_dimensions (int): Jumlah dimensi dalam ruang pencarian.
+        - w (float): Faktor inersia.
+        - c1 (float): Faktor kognitif.
+        - c2 (float): Faktor sosial.
+        - n_iterations (int): Jumlah iterasi.
+        - upper_bound (float): Batas atas untuk nilai partikel.
+        - lower_bound (float): Batas bawah untuk nilai partikel.
+        - seed (int, optional): Seed untuk inisialisasi random. Default: None.
+        """
+        if seed is not None:
+            np.random.seed(seed)
+        
         self.obj_function = objective_function
         self.n_particles = n_particles
         self.n_dimensions = n_dimensions
@@ -48,14 +68,37 @@ class PSO:
         self.velocities = np.zeros((n_particles, n_dimensions))
         self.history_particel = []
     
-    def velocity(self,x):
-        
+    def velocity(self, x):
+        """
+        Menghitung kecepatan partikel.
+
+        Parameters:
+        - x (ndarray): Koordinat partikel.
+
+        Returns:
+        - ndarray: Kecepatan partikel.
+        """
         return self.w * x + self.c1 * np.random.rand() * (self.pbest - x) + self.c2 * np.random.rand() * (self.gbest - x)
     
-    def position(self,x):
+    def position(self, x):
+        """
+        Menghitung posisi partikel.
+
+        Parameters:
+        - x (ndarray): Koordinat partikel.
+
+        Returns:
+        - ndarray: Posisi partikel.
+        """
         return x + self.velocity(x)
     
     def fit(self):
+        """
+        Melakukan optimisasi menggunakan algoritma PSO.
+
+        Returns:
+        - ndarray: Koordinat partikel terbaik.
+        """
         for i in range(self.n_iterations):
             for j in range(self.n_particles):
                 score = self.obj_function(self.particles[j])
@@ -70,7 +113,11 @@ class PSO:
             self.particles = self.position(self.particles)
             self.history_particel.append(self.particles)
         return self.gbest
+    
 
+
+# Plot hasil running PSO  secara interaktif
+#untuk bisa running lebih baik silahkan buka url : 
 
 x = np.linspace(-10, 7, 100)
 y = np.linspace(-10, 7, 100)
@@ -80,7 +127,7 @@ Z = np.array([f12_function(np.array([xi, yi])) for xi, yi in zip(X.ravel(), Y.ra
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 surf = ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='none', alpha=0.8)
-pso3 = PSO(f12_function,50,2,0.4,0.2,0.6,20,7,-10)
+pso3 = PSO(f12_function,10,2,0.1,1,0.7,20,7,-10,22)
 points = ax.scatter(pso3.particles[:, 0], pso3.particles[:, 1], [f12_function(p) for p in pso3.particles], color='r')
 pso3.fit()
 list_poin = pso3.history_particel
@@ -92,5 +139,5 @@ def update(frame):
     points._offsets3d = (titik_poin[:, 0], titik_poin[:, 1], [f12_function(p) for p in titik_poin])
     return points,
 
-ani = FuncAnimation(fig, update, frames=np.arange(len(list_poin)), interval=50,repeat=False)
+ani = FuncAnimation(fig, update, frames=np.arange(len(list_poin)), interval=100,repeat=False)
 plt.show()
